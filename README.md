@@ -8,6 +8,8 @@ This repo contains the hook scripts exactly as they are currently working on
 - conversation memory is routed into the project wing derived from `cwd`,
   with fallback wing `codex_sessions_unscoped` when no project wing can be
   resolved
+  Generic home-directory sessions are treated as unscoped and also route to
+  `codex_sessions_unscoped`.
 - only the active transcript is mined
 - Codex `event_msg` / `user_message` transcripts are counted correctly
 - `Stop` transcript mining is synchronous for correctness
@@ -27,15 +29,17 @@ All three are required. The two entrypoints source `mempal_hook_common.sh`.
 - Fires after an assistant turn ends
 - Counts user messages in the transcript
 - Triggers every `SAVE_INTERVAL` messages, default `3`
-- Mines only the active transcript into the derived project wing, or into
-  `codex_sessions_unscoped` when project inference fails
+- Mines only the active transcript into the derived project wing when that
+  wing already exists in the palace, or into `codex_sessions_unscoped` when
+  no initialized project wing can be resolved
 - Silent by default unless `MEMPAL_VERBOSE=true`
 
 ### PreCompact
 
 - Fires before compaction
-- Mines only the active transcript into the derived project wing, or into
-  `codex_sessions_unscoped` when project inference fails
+- Mines only the active transcript into the derived project wing when that
+  wing already exists in the palace, or into `codex_sessions_unscoped` when
+  no initialized project wing can be resolved
 - Always synchronous
 - Always returns `{}` and does not block
 

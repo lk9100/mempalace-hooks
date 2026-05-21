@@ -19,6 +19,7 @@ mempal_target_wing() {
 import json
 import os
 import re
+import sqlite3
 import sys
 
 
@@ -26,6 +27,48 @@ def normalize(name: str) -> str:
     name = name.strip().lower().replace(" ", "_").replace("-", "_")
     name = re.sub(r"[^a-z0-9_]+", "_", name).strip("_")
     return name
+
+
+def is_generic_cwd(cwd: str) -> bool:
+    try:
+        home = os.path.abspath(os.path.expanduser("~"))
+        resolved = os.path.abspath(os.path.expanduser(cwd))
+    except Exception:
+        return False
+    return resolved == home
+
+
+def palace_path() -> str:
+    env_path = os.environ.get("MEMPALACE_PALACE_PATH")
+    if env_path:
+        return os.path.abspath(os.path.expanduser(env_path))
+
+    config_path = os.path.expanduser("~/.mempalace/config.json")
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except Exception:
+        return os.path.expanduser("~/.mempalace/palace")
+
+    return os.path.abspath(os.path.expanduser(cfg.get("palace_path", "~/.mempalace/palace")))
+
+
+def wing_exists(wing: str) -> bool:
+    db_path = os.path.join(palace_path(), "chroma.sqlite3")
+    if not os.path.exists(db_path):
+        return False
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute(
+            "select 1 from embedding_metadata where key = ? and string_value = ? limit 1",
+            ("wing", wing),
+        )
+        row = cur.fetchone()
+        conn.close()
+        return row is not None
+    except Exception:
+        return False
 
 
 path = sys.argv[1]
@@ -49,7 +92,7 @@ try:
 
             if cwd:
                 wing = normalize(os.path.basename(os.path.normpath(cwd)))
-                if wing:
+                if not is_generic_cwd(cwd) and wing and wing_exists(wing):
                     print(wing)
                     raise SystemExit(0)
 
@@ -64,7 +107,7 @@ if match:
     encoded = match.group(1)
     project = encoded.rsplit("-", 1)[-1]
     wing = normalize(project)
-    if wing:
+    if wing and wing_exists(wing):
         print(wing)
         raise SystemExit(0)
 
