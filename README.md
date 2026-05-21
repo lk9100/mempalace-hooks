@@ -3,10 +3,11 @@
 Extracted, working MemPalace hook bundle for Claude Code and Codex.
 
 This repo contains the hook scripts exactly as they are currently working on
-`/Users/kailan`, with one intentional behavior change from upstream shell
-hooks:
+`/Users/kailan`, with intentional behavior changes from upstream shell hooks:
 
-- conversation memory is routed by project `cwd` into a project wing
+- conversation memory is routed into the project wing derived from `cwd`,
+  with fallback wing `codex_sessions_unscoped` when no project wing can be
+  resolved
 - only the active transcript is mined
 - Codex `event_msg` / `user_message` transcripts are counted correctly
 - `Stop` transcript mining is synchronous for correctness
@@ -25,14 +26,16 @@ All three are required. The two entrypoints source `mempal_hook_common.sh`.
 
 - Fires after an assistant turn ends
 - Counts user messages in the transcript
-- Triggers every `SAVE_INTERVAL` messages, default `15`
-- Mines only the active transcript into the wing derived from transcript `cwd`
+- Triggers every `SAVE_INTERVAL` messages, default `3`
+- Mines only the active transcript into the derived project wing, or into
+  `codex_sessions_unscoped` when project inference fails
 - Silent by default unless `MEMPAL_VERBOSE=true`
 
 ### PreCompact
 
 - Fires before compaction
-- Mines only the active transcript into the wing derived from transcript `cwd`
+- Mines only the active transcript into the derived project wing, or into
+  `codex_sessions_unscoped` when project inference fails
 - Always synchronous
 - Always returns `{}` and does not block
 
@@ -127,6 +130,11 @@ Edit the scripts if needed:
 - `MEMPAL_DIR`
 - `MEMPAL_VERBOSE`
 - `MEMPAL_PYTHON`
+
+Shipped defaults:
+
+- `SAVE_INTERVAL=3`
+- fallback wing = `codex_sessions_unscoped`
 
 `MEMPAL_DIR` is additive. It does not replace transcript mining.
 

@@ -68,10 +68,9 @@ if match:
         print(wing)
         raise SystemExit(0)
 
-parent = os.path.basename(os.path.dirname(path))
-wing = normalize(parent)
-if wing:
-    print(wing)
+# Explicit fallback for ambiguous/unscoped chat transcripts. Avoids
+# polluting the palace with transcript storage folder names like dates.
+print("codex_sessions_unscoped")
 PY
 }
 

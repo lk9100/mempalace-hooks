@@ -52,7 +52,7 @@
 #
 # === CONFIGURATION ===
 
-SAVE_INTERVAL=15  # Save every N human messages (adjust to taste)
+SAVE_INTERVAL=3  # Save every N human messages (adjust to taste)
 # Ensure uv-installed user tools are visible even when the app was launched
 # from the GUI with a minimal PATH.
 export PATH="$HOME/.local/bin:$PATH"
